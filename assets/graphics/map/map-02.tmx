@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="32" height="18" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="9">
+ <tileset firstgid="1" source="map.tsx"/>
+ <tileset firstgid="122" source="map_ext6.tsx"/>
+ <tileset firstgid="1418" name="entities" tilewidth="48" tileheight="48" tilecount="3" columns="0">
+  <grid orientation="orthogonal" width="1" height="1"/>
+  <tile id="0">
+   <image source="images/chest.png" width="16" height="16"/>
+  </tile>
+  <tile id="1">
+   <image source="images/player.png" width="48" height="48"/>
+  </tile>
+  <tile id="2">
+   <image source="images/slime.png" width="32" height="32"/>
+  </tile>
+ </tileset>
+ <layer id="1" name="ground" width="32" height="18">
+  <data encoding="base64" compression="zlib">
+   eJzjYWBg4AHiOUwDg3lG7R9w+wfK7lH7B97+UTzw+W+g7R/J4T/QeDDE/0i2HwBBnFZy
+  </data>
+ </layer>
+ <layer id="2" name="bgd_1" width="32" height="18">
+  <data encoding="base64" compression="zlib">
+   eJztlE0KgzAQRsdm3cP0ehVPYutB3Nh6DLX2R4Ueow/sMkokk9pCHzwIIZkPwmRE/oQmjUQOeIzczrcb3fyC3BOeHfNtVEakxgYv2OIVb3jHB3bGfrcjt8fBI/+biPH5Nlkhfz+xdkGjtzLcmtHMv9xiStyZ0TJQhu2dcvYK5b8ZAu358UmWzkrtuhqz0qduqFnpW/eXe2qOF60sKgw=
+  </data>
+ </layer>
+ <objectgroup id="4" name="entities">
+  <object id="1" type="Player" gid="1419" x="14.5" y="267.5" width="48" height="48"/>
+  <object id="2" type="Slime" gid="1420" x="74" y="243.5" width="32" height="32"/>
+  <object id="3" type="Slime" gid="1420" x="274.5" y="174" width="32" height="32"/>
+  <object id="4" type="Slime" gid="1420" x="316" y="262" width="32" height="32"/>
+  <object id="5" type="Slime" gid="1420" x="93.5" y="91" width="32" height="32"/>
+  <object id="6" type="Slime" gid="1420" x="390.5" y="150.5" width="32" height="32"/>
+  <object id="7" type="Slime" gid="1420" x="348" y="106.5" width="32" height="32"/>
+  <object id="8" type="Slime" gid="1420" x="423.5" y="242.5" width="32" height="32"/>
+ </objectgroup>
+ <layer id="3" name="fgd_1" width="32" height="18">
+  <data encoding="base64" compression="zlib">
+   eJztztcJAmEQhdEftztz6MMc+jCHPsyhE2vxVCCLsA/CfHBe70xK+SpnKVWoUqNOgyYt2nSynGM/1LXdo8+AISPGTJgyK/D+3PaCJSvWbNiyY8+hwPtH2yfOXLhy486DJ68v99+l4n6LoiiKon/rA516Fg0=
+  </data>
+ </layer>
+</map>
