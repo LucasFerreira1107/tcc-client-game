@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.EventListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Image
@@ -19,12 +20,17 @@ import com.tcc.client.component.ImageComponent
 import com.tcc.client.enum.AnimationType
 import com.tcc.client.event.MapChangeEvent
 import com.tcc.client.event.fire
+import com.tcc.client.input.PlayerKeyboardInputProcessor
 import com.tcc.client.system.AnimationSystem
+import com.tcc.client.system.DebugSystem
 import com.tcc.client.system.EntitySpawnSystem
+import com.tcc.client.system.MoveSystem
+import com.tcc.client.system.PhysicSystem
 import com.tcc.client.system.RenderSystem
 import ktx.app.KtxScreen
 import ktx.artemis.entity
 import ktx.assets.disposeSafely
+import ktx.box2d.createWorld
 import ktx.log.logger
 
 /**
@@ -96,22 +102,32 @@ class GameScreen : KtxScreen {
      *    - RenderSystem: Responsável por renderizar entidades com ImageComponent
      */
     private var currentMap: TiledMap? = null
+
+    private val phWorld = createWorld(gravity = Vector2.Zero).apply {
+        autoClearForces = false
+    }
     private val world = configureWorld {
         // Registra dependências que podem ser injetadas em componentes e sistemas
         injectables {
+            add(phWorld)
             add(stage)  // Stage disponível para injeção em ImageComponent e RenderSystem
         }
 
         // Registra os sistemas do jogo (executados na ordem definida)
         systems {
+            add(EntitySpawnSystem(atlasTexture))
+            add(PhysicSystem())
             // Sistema de animação que gerencia animações de entidades com AnimationComponent
             add(AnimationSystem(atlasTexture))
-
+            add(MoveSystem())
             // Sistema de renderização que desenha entidades com ImageComponent
             add(RenderSystem(stage))
+            add(DebugSystem())
 
-            add(EntitySpawnSystem(atlasTexture))
         }
+    }
+    init {
+        PlayerKeyboardInputProcessor(world)
     }
 
     /**
@@ -170,7 +186,7 @@ class GameScreen : KtxScreen {
             // Atualiza o World do ECS
             // Isso executa todos os sistemas registrados (ex: RenderSystem)
             // Os sistemas processam as entidades que possuem os componentes necessários
-            world.update(delta)
+            world.update(delta.coerceAtMost(0.25f))
         }
 
         /**
@@ -192,6 +208,8 @@ class GameScreen : KtxScreen {
             world.dispose()
 
             currentMap?.disposeSafely()
+
+            phWorld.disposeSafely()
         }
 
         /**
