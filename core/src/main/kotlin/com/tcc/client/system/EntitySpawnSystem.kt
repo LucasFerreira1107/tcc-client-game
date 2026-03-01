@@ -9,15 +9,23 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.utils.Scaling
 import com.github.quillraven.fleks.Entity
 import com.github.quillraven.fleks.IteratingSystem
+import com.badlogic.gdx.physics.box2d.World
 import com.github.quillraven.fleks.World.Companion.family
+import com.github.quillraven.fleks.World.Companion.inject
 import com.tcc.client.Main.Companion.UNIT_SCALE
 import com.tcc.client.component.AnimationComponent
 import com.tcc.client.component.ImageComponent
+import com.tcc.client.component.MoveComponent
+import com.tcc.client.component.PhysicComponent
+import com.tcc.client.component.PhysicComponent.Companion.bodyFromImageAndCfg
+import com.tcc.client.component.PlayerComponent
 import com.tcc.client.component.SpawnComponent
 import com.tcc.client.config.SpawnCfg
+import com.tcc.client.config.SpawnCfg.Companion.DEFAULT_SPEED
 import com.tcc.client.enum.AnimationType
 import com.tcc.client.event.MapChangeEvent
 import ktx.app.gdxError
+import ktx.log.logger
 import ktx.math.vec2
 import ktx.tiled.id
 import ktx.tiled.layer
@@ -28,16 +36,18 @@ import ktx.tiled.y
 
 
 class EntitySpawnSystem (
-    private val atlas: TextureAtlas
+    private val atlas: TextureAtlas,
+    private val physicWorld: World = inject()
+
     ): EventListener, IteratingSystem(family {all(SpawnComponent)}){
     private val cachedCfgs = mutableMapOf<String, SpawnCfg>()
     private val cachedSizes = mutableMapOf<String, Vector2>()
-    /*private val playerEntities = world.family { all(PlayerComponent) }*/
-
+    private val playerEntities = world.family { all(PlayerComponent) }
     override fun onTickEntity(entity: Entity) {
         with(entity[SpawnComponent]){
             val cfg = spawnCfg(type)
            val relativeSize = size(cfg.atlasKey)
+            log.debug { "Spawning entity of type $type with size $relativeSize" }
 
             world.entity {
                 it += ImageComponent().apply {
@@ -51,6 +61,18 @@ class EntitySpawnSystem (
                 it+= AnimationComponent().apply {
                     nextAnimation(cfg.atlasKey, AnimationType.IDLE)
                 }
+                it += PhysicComponent().apply { body = bodyFromImageAndCfg(physicWorld, it[ImageComponent].image, cfg ) }
+
+                if(cfg.scaleSpeed != 0f){
+                    it += MoveComponent(DEFAULT_SPEED * cfg.scaleSpeed)
+                    log.debug { "MoveComponent adicionado ao mundo" }
+                }
+
+                when(type){
+                    PLAYER_TYPE ->{
+                        it += PlayerComponent
+                    }
+                }
             }
         }
         entity.remove()
@@ -58,7 +80,7 @@ class EntitySpawnSystem (
 
     private fun spawnCfg(type:String): SpawnCfg= cachedCfgs.getOrPut(type) {
        when{
-           type == "Player" -> SpawnCfg("player")
+           type == "Player" -> PLAYER_CFG
            type == "Slime" -> SpawnCfg("slime")
            type.isNotBlank() -> SpawnCfg(type.lowercase())
            else -> gdxError("SpawnType must be specified")
@@ -83,6 +105,10 @@ class EntitySpawnSystem (
             entityLayer.objects.forEach { mapObject ->
                 val typeStr = mapObject.type ?: gdxError("MapObject ${mapObject.id} of 'entities' layer does not have a NAME")
 
+                if (typeStr == PLAYER_TYPE && playerEntities.isNotEmpty){
+                    return@forEach
+                }
+
                 world.entity {
                     it += SpawnComponent(
                         typeStr,
@@ -97,6 +123,15 @@ class EntitySpawnSystem (
     }
 
     companion object{
-        private const val PLAYER_TYPE = "PLAYER"
+        private val log = logger<EntitySpawnSystem>()
+        private const val PLAYER_TYPE = "Player"
+        const val HIT_BOX_SENSOR = "HitBoxSensor"
+
+        val PLAYER_CFG = SpawnCfg(
+            "player",
+            scaleSpeed = 3f,
+           /* scalePhysic = vec2(0.3f, 0.3f),
+            physicOffset = vec2(0f, -10f*UNIT_SCALE),*/
+        )
     }
 }
